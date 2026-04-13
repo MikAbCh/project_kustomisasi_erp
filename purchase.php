@@ -25,9 +25,10 @@ if (isset($_POST['save_purchase'])) {
     $product_id   = $_POST['fk_product'];
     $qty          = $_POST['qty'];
     $harga        = $_POST['harga_satuan'];
-    
+    $persen_ppn   = $_POST['persen_ppn'];
+
     $subtotal     = $qty * $harga;
-    $ppn          = $subtotal * 0.11;
+    $ppn          = $subtotal * ($persen_ppn / 100);
     $total_all    = $subtotal + $ppn;
 
     if (empty($_POST['id_purchase'])) {
@@ -120,6 +121,11 @@ if (isset($_GET['edit'])) {
             </div>
         </div>
 
+        <div>
+            <label><strong>Pajak PPN (%)</strong></label>
+            <input type="number" name="persen_ppn" style="width:100%; padding:8px; margin-top:5px;" value="11" min="0">
+        </div>
+
         <div style="margin-top: 25px;">
             <button type="submit" name="save_purchase" class="btn-orange">Confirm & Save PO</button>
             <a href="purchase.php" class="btn-orange" style="background:#888; text-decoration:none;">Cancel</a>
@@ -134,7 +140,7 @@ if (isset($_GET['edit'])) {
                 <th>PO Reference</th>
                 <th>Supplier</th>
                 <th>Date</th>
-                <th style="text-align:right">Total (Incl. PPN 11%)</th>
+                <th style="text-align:right">Total (Incl. PPN)</th>
                 <th>Status</th>
                 <th style="text-align:center">Actions</th>
             </tr>
