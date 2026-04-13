@@ -10,49 +10,67 @@ if (isset($_GET['delete'])) {
     header("Location: purchase.php?msg=deleted");
 }
 
-// 2. LOGIKA SAVE (Create & Update)
+// 2. LOGIKA SAVE (Multi-Product Support)
 if (isset($_POST['save_purchase'])) {
-    $id           = $_POST['id_product_hidden']; // ID Hidden
     $supplier_name = $_POST['supplier_input'];
-    
-    // Cari ID Supplier berdasarkan Nama (Karena kita pakai datalist/suggest)
     $res_s = mysqli_query($conn, "SELECT id_supplier FROM supplier WHERE nama_perusahaan = '$supplier_name'");
     $s_data = mysqli_fetch_assoc($res_s);
     $supplier_id = $s_data['id_supplier'];
 
     $tgl_order    = $_POST['tanggal_order'];
     $status       = $_POST['status_dokumen'];
-    $product_id   = $_POST['fk_product'];
-    $qty          = $_POST['qty'];
-    $harga        = $_POST['harga_satuan'];
     $persen_ppn   = $_POST['persen_ppn'];
 
-    $subtotal     = $qty * $harga;
-    $ppn          = $subtotal * ($persen_ppn / 100);
-    $total_all    = $subtotal + $ppn;
+    // Menghitung Total dari semua baris produk
+    $total_subtotal = 0;
+    foreach ($_POST['qty'] as $key => $qty) {
+        $total_subtotal += ($qty * $_POST['harga_satuan'][$key]);
+    }
+
+    $ppn       = $total_subtotal * ($persen_ppn / 100);
+    $total_all = $total_subtotal + $ppn;
 
     if (empty($_POST['id_purchase'])) {
+        // Simpan Header
         mysqli_query($conn, "INSERT INTO transaksi_purchase (fk_supplier, tanggal_order, status_dokumen, total_sebelum_pajak, pajak_ppn, total_keseluruhan) 
-                            VALUES ('$supplier_id', '$tgl_order', '$status', '$subtotal', '$ppn', '$total_all')");
+                            VALUES ('$supplier_id', '$tgl_order', '$status', '$total_subtotal', '$ppn', '$total_all')");
         $new_id = mysqli_insert_id($conn);
-        mysqli_query($conn, "INSERT INTO transaksi_purchase_line (fk_purchase, fk_product, qty, harga_satuan, subtotal) 
-                            VALUES ('$new_id', '$product_id', '$qty', '$harga', '$subtotal')");
+
+        // Simpan Lines (Looping)
+        foreach ($_POST['fk_product'] as $key => $prod_id) {
+            $q = $_POST['qty'][$key];
+            $h = $_POST['harga_satuan'][$key];
+            $sub = $q * $h;
+            mysqli_query($conn, "INSERT INTO transaksi_purchase_line (fk_purchase, fk_product, qty, harga_satuan, subtotal) 
+                                VALUES ('$new_id', '$prod_id', '$q', '$h', '$sub')");
+        }
     } else {
         $id_p = $_POST['id_purchase'];
+        // Update Header
         mysqli_query($conn, "UPDATE transaksi_purchase SET fk_supplier='$supplier_id', tanggal_order='$tgl_order', status_dokumen='$status', 
-                            total_sebelum_pajak='$subtotal', pajak_ppn='$ppn', total_keseluruhan='$total_all' WHERE id_purchase=$id_p");
-        mysqli_query($conn, "UPDATE transaksi_purchase_line SET fk_product='$product_id', qty='$qty', harga_satuan='$harga', subtotal='$subtotal' WHERE fk_purchase=$id_p");
+                            total_sebelum_pajak='$total_subtotal', pajak_ppn='$ppn', total_keseluruhan='$total_all' WHERE id_purchase=$id_p");
+        
+        // Update Lines: Hapus baris lama lalu insert ulang agar sinkron
+        mysqli_query($conn, "DELETE FROM transaksi_purchase_line WHERE fk_purchase=$id_p");
+        foreach ($_POST['fk_product'] as $key => $prod_id) {
+            $q = $_POST['qty'][$key];
+            $h = $_POST['harga_satuan'][$key];
+            $sub = $q * $h;
+            mysqli_query($conn, "INSERT INTO transaksi_purchase_line (fk_purchase, fk_product, qty, harga_satuan, subtotal) 
+                                VALUES ('$id_p', '$prod_id', '$q', '$h', '$sub')");
+        }
     }
     header("Location: purchase.php?msg=success");
 }
 
-$val = ['id_purchase'=>'','nama_perusahaan'=>'','tanggal_order'=>'','status_dokumen'=>'draft','fk_product'=>'','qty'=>'','harga_satuan'=>''];
+$val = ['id_purchase'=>'','nama_perusahaan'=>'','tanggal_order'=>date('Y-m-d'),'status_dokumen'=>'draft'];
+$lines = []; 
 if (isset($_GET['edit'])) {
     $id = $_GET['edit'];
-    $res = mysqli_query($conn, "SELECT h.*, s.nama_perusahaan, l.fk_product, l.qty, l.harga_satuan FROM transaksi_purchase h 
-                                JOIN supplier s ON h.fk_supplier = s.id_supplier
-                                JOIN transaksi_purchase_line l ON h.id_purchase = l.fk_purchase WHERE h.id_purchase = $id");
+    $res = mysqli_query($conn, "SELECT h.*, s.nama_perusahaan FROM transaksi_purchase h JOIN supplier s ON h.fk_supplier = s.id_supplier WHERE h.id_purchase = $id");
     $val = mysqli_fetch_assoc($res);
+    $res_l = mysqli_query($conn, "SELECT * FROM transaksi_purchase_line WHERE fk_purchase = $id");
+    while($l = mysqli_fetch_assoc($res_l)) $lines[] = $l;
 }
 ?>
 
@@ -65,10 +83,10 @@ if (isset($_GET['edit'])) {
     <form method="POST">
         <input type="hidden" name="id_purchase" value="<?= $val['id_purchase'] ?>">
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 100px; gap: 20px; align-items: end;">
             <div>
-                <label><strong>Supplier Name (Type to search)</strong></label>
-                <input list="supplier_list" name="supplier_input" class="form-control" style="width:100%; padding:8px; margin-top:5px;" value="<?= $val['nama_perusahaan'] ?>" placeholder="Search supplier..." required>
+                <label><strong>Supplier</strong></label>
+                <input list="supplier_list" name="supplier_input" style="width:100%; padding:8px;" value="<?= $val['nama_perusahaan'] ?>" placeholder="Search..." required>
                 <datalist id="supplier_list">
                     <?php 
                     $s_list = mysqli_query($conn, "SELECT nama_perusahaan FROM supplier");
@@ -76,15 +94,13 @@ if (isset($_GET['edit'])) {
                     ?>
                 </datalist>
             </div>
-
             <div>
                 <label><strong>Order Date</strong></label>
-                <input type="date" name="tanggal_order" style="width:100%; padding:8px; margin-top:5px;" value="<?= $val['tanggal_order'] ?>" required>
+                <input type="date" name="tanggal_order" style="width:100%; padding:8px;" value="<?= $val['tanggal_order'] ?>" required>
             </div>
-
             <div>
-                <label><strong>Document Status</strong></label>
-                <select name="status_dokumen" style="width:100%; padding:8px; margin-top:5px;">
+                <label><strong>Status</strong></label>
+                <select name="status_dokumen" style="width:100%; padding:8px;">
                     <?php $opts = ['draft','sent','purchase','done']; 
                     foreach($opts as $o) {
                         $sel = ($o == $val['status_dokumen']) ? 'selected' : '';
@@ -92,38 +108,44 @@ if (isset($_GET['edit'])) {
                     } ?>
                 </select>
             </div>
-
-            <div style="grid-column: span 3; border-top: 2px solid #ef7d00; padding-top: 15px; margin-top: 10px;">
-                <h4 style="margin-bottom: 10px;">Order Lines Detail</h4>
-                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px;">
-                    <div>
-                        <label><small>Select Product</small></label>
-                        <select name="fk_product" style="width:100%; padding:8px; margin-top:5px;" required>
-                            <option value="">-- Choose Product --</option>
-                            <?php 
-                            $p_list = mysqli_query($conn, "SELECT id_product, nama_product FROM product");
-                            while($p = mysqli_fetch_assoc($p_list)) {
-                                $sel = ($p['id_product'] == $val['fk_product']) ? 'selected' : '';
-                                echo "<option value='{$p['id_product']}' $sel>{$p['nama_product']}</option>";
-                            }
-                            ?>
-                        </select>
-                    </div>
-                    <div>
-                        <label><small>Quantity (Qty)</small></label>
-                        <input type="number" name="qty" style="width:100%; padding:8px; margin-top:5px;" placeholder="e.g. 10" value="<?= $val['qty'] ?>" required>
-                    </div>
-                    <div>
-                        <label><small>Unit Price (IDR)</small></label>
-                        <input type="number" name="harga_satuan" style="width:100%; padding:8px; margin-top:5px;" placeholder="e.g. 50000" value="<?= $val['harga_satuan'] ?>" required>
-                    </div>
-                </div>
+            <div>
+                <label><strong>Tax %</strong></label>
+                <input type="number" name="persen_ppn" style="width:100%; padding:8px;" value="11" min="0">
             </div>
         </div>
 
-        <div>
-            <label><strong>Pajak PPN (%)</strong></label>
-            <input type="number" name="persen_ppn" style="width:100%; padding:8px; margin-top:5px;" value="11" min="0">
+        <div style="margin-top: 20px; border-top: 2px solid #ef7d00; padding-top: 15px;">
+            <h4 style="margin-bottom: 15px;">Order Lines</h4>
+            <div id="line-container">
+                <?php 
+                $p_options = "";
+                $p_list = mysqli_query($conn, "SELECT id_product, nama_product FROM product");
+                while($p = mysqli_fetch_assoc($p_list)) $p_options .= "<option value='{$p['id_product']}'>{$p['nama_product']}</option>";
+
+                if (empty($lines)) $lines[] = ['fk_product'=>'','qty'=>'','harga_satuan'=>'']; // Default 1 baris kosong
+                foreach($lines as $index => $ln): ?>
+                <div class="order-line" style="display: grid; grid-template-columns: 2fr 1fr 1fr 50px; gap: 10px; margin-bottom: 10px;">
+                    <select name="fk_product[]" style="padding:8px;" required>
+                        <option value="">-- Product --</option>
+                        <?php 
+                        $p_list = mysqli_query($conn, "SELECT id_product, nama_product FROM product");
+                        while($p = mysqli_fetch_assoc($p_list)) {
+                            $sel = ($p['id_product'] == $ln['fk_product']) ? 'selected' : '';
+                            echo "<option value='{$p['id_product']}' $sel>{$p['nama_product']}</option>";
+                        }
+                        ?>
+                    </select>
+                    <input type="number" name="qty[]" placeholder="Qty" style="padding:8px;" value="<?= $ln['qty'] ?>" required>
+                    <input type="number" name="harga_satuan[]" placeholder="Price" style="padding:8px;" value="<?= $ln['harga_satuan'] ?>" required>
+                    <?php if($index > 0): ?>
+                        <button type="button" onclick="this.parentElement.remove()" style="background:red; color:white; border:none; border-radius:4px; cursor:pointer;">X</button>
+                    <?php else: ?>
+                        <span></span>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" onclick="addItem()" class="btn-orange" style="background:#555; padding: 5px 15px; font-size: 12px;">+ Add Item</button>
         </div>
 
         <div style="margin-top: 25px;">
@@ -147,8 +169,7 @@ if (isset($_GET['edit'])) {
         </thead>
         <tbody>
             <?php
-            $sql = "SELECT p.*, s.nama_perusahaan FROM transaksi_purchase p 
-                    JOIN supplier s ON p.fk_supplier = s.id_supplier ORDER BY p.id_purchase DESC";
+            $sql = "SELECT p.*, s.nama_perusahaan FROM transaksi_purchase p JOIN supplier s ON p.fk_supplier = s.id_supplier ORDER BY p.id_purchase DESC";
             $res = mysqli_query($conn, $sql);
             while($row = mysqli_fetch_assoc($res)) {
                 $st_class = ($row['status_dokumen'] == 'purchase') ? 'bg-posted' : 'bg-draft';
@@ -173,6 +194,26 @@ if (isset($_GET['edit'])) {
 function toggleForm() {
     var x = document.getElementById("form-purchase");
     x.style.display = (x.style.display === "none") ? "block" : "none";
+}
+
+function addItem() {
+    const container = document.getElementById('line-container');
+    const firstLine = container.querySelector('.order-line');
+    const newLine = firstLine.cloneNode(true);
+    
+    // Reset values in new line
+    newLine.querySelectorAll('input').forEach(input => input.value = '');
+    newLine.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+    
+    // Add remove button to new line
+    const removeBtn = document.createElement('button');
+    removeBtn.type = "button";
+    removeBtn.innerText = "X";
+    removeBtn.style = "background:red; color:white; border:none; border-radius:4px; cursor:pointer;";
+    removeBtn.onclick = function() { this.parentElement.remove(); };
+    
+    newLine.replaceChild(removeBtn, newLine.lastElementChild);
+    container.appendChild(newLine);
 }
 </script>
 
