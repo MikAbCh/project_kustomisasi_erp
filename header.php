@@ -45,5 +45,6 @@
         <a href="purchase.php">Purchasing</a>
         <a href="invoice.php">Invoices</a>
         <a href="payment.php">Payments</a>
+        <a href="report_purchase.php" style="font-weight:bold; color:#ef7d00;">Reports</a>
     </div>
     <div class="main-content">
