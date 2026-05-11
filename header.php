@@ -8,14 +8,27 @@
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f6; display: flex; color: #333; }
 
         /* SIDEBAR ODOO STYLE */
-        .sidebar { width: 220px; background-color: #2c3e50; min-height: 100vh; position: fixed; color: white; }
+        .sidebar { width: 180px; background-color: #2c3e50; min-height: 100vh; position: fixed; color: white; }
         .sidebar h2 { padding: 25px 20px; font-size: 1.2rem; color: #ef7d00; text-align: center; border-bottom: 1px solid #34495e; }
         .sidebar a { display: block; color: #ced4da; padding: 15px 20px; text-decoration: none; font-size: 14px; transition: 0.3s; }
-        .sidebar a:hover { background-color: #ef7d00; color: white; padding-left: 30px; }
+        .sidebar a:hover { background-color: #ef7d00; color: white; padding-left: 25px; }
         .sidebar a.active { background-color: #ef7d00; color: white; border-left: 5px solid #fff; }
 
+        /* STYLE KHUSUS SUB-MENU (INDENTASI) */
+        .sidebar .submenu {
+            background-color: #1e2b37; /* Warna sedikit lebih gelap untuk membedakan area */
+        }
+        .sidebar .submenu a {
+            padding-left: 35px; /* Memberikan indentasi */
+            font-size: 13px;    /* Sedikit lebih kecil agar hierarki jelas */
+            border-bottom: 1px solid #2c3e50;
+        }
+        .sidebar .submenu a:hover {
+            padding-left: 45px; /* Tetap memberikan efek geser saat hover */
+        }
+
         /* CONTENT AREA */
-        .main-content { margin-left: 220px; width: calc(100% - 220px); padding: 30px; }
+        .main-content { margin-left: 180px; width: calc(100% - 180px); padding: 30px; }
         .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         
         /* UI COMPONENTS */
@@ -40,11 +53,23 @@
     <div class="sidebar">
         <h2>ERP System</h2>
         <a href="index.php" style="border-bottom: 2px solid #1a252f; font-weight: bold;">🏠 Dashboard</a>
-        <a href="supplier.php">Suppliers</a>
-        <a href="product.php">Products</a>
-        <a href="purchase.php">Purchasing</a>
-        <a href="invoice.php">Invoices</a>
-        <a href="payment.php">Payments</a>
-        <a href="report_purchase.php" style="font-weight:bold; color:#ef7d00;">Reports</a>
+        
+        <!-- Header Menu Purchasing -->
+        <div style="padding: 15px 20px; font-size: 14px; color: #ef7d00; font-weight: bold; background: #1a252f;">
+            🛒 Purchasing
+        </div>
+        
+        <!-- Grouping Sub-Menu dengan Indentasi -->
+        <div class="submenu">
+            <a href="purchase.php">Purchase Orders</a>
+            <a href="supplier.php">Suppliers</a>
+            <a href="product.php">Products</a>
+            <a href="invoice.php">Invoices</a>
+            <a href="payment.php">Payments</a>
+        </div>
+
+        <a href="report_purchase.php" style="font-weight:bold; color:#ef7d00; border-top: 1px solid #34495e;">Reports</a>
     </div>
+
     <div class="main-content">
+        <!-- Konten Anda dimulai di sini -->
