@@ -107,6 +107,16 @@ if (isset($_GET['edit'])) {
     </form>
 </div>
 
+<div style="margin-bottom: 15px;">
+    <form method="GET" action="product.php" style="display:flex; gap:10px; align-items:center;">
+        <input type="text" name="search" placeholder="Cari Nama Produk atau SKU..." style="padding: 8px; width: 300px; border: 1px solid #ccc; border-radius: 4px;" value="<?= isset($_GET['search']) ? htmlspecialchars($_GET['search']) : '' ?>">
+        <button type="submit" class="btn-orange">Search</button>
+        <?php if(isset($_GET['search']) && !empty($_GET['search'])): ?>
+            <a href="product.php" class="btn-orange" style="background:#888; text-decoration:none;">Clear</a>
+        <?php endif; ?>
+    </form>
+</div>
+
 <div class="card">
     <table>
         <thead>
@@ -121,7 +131,12 @@ if (isset($_GET['edit'])) {
         </thead>
         <tbody>
             <?php
-            $result = mysqli_query($conn, "SELECT * FROM product ORDER BY id_product DESC");
+            $search_query = "";
+            if (isset($_GET['search']) && !empty(trim($_GET['search']))) {
+                $search = mysqli_real_escape_string($conn, $_GET['search']);
+                $search_query = " WHERE nama_product LIKE '%$search%' OR sku LIKE '%$search%' ";
+            }
+            $result = mysqli_query($conn, "SELECT * FROM product $search_query ORDER BY id_product DESC");
             if (mysqli_num_rows($result) > 0) {
                 while($row = mysqli_fetch_assoc($result)) {
                     echo "<tr>
