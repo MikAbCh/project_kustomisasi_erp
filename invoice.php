@@ -1,6 +1,5 @@
 <?php 
 include 'config.php'; 
-include 'header.php'; 
 
 // 1. LOGIKA DELETE
 if (isset($_GET['delete'])) {
@@ -39,6 +38,8 @@ if (isset($_POST['save_invoice'])) {
         header("Location: invoice.php?msg=success");
     }
 }
+
+include 'header.php'; 
 
 // 3. AMBIL DATA UNTUK EDIT
 $val = ['id_invoice'=>'','fk_purchase'=>'','nomor_invoice_vendor'=>'','tanggal_invoice'=>'','tanggal_jatuh_tempo'=>'','status_invoice'=>'draft','status_pembayaran'=>'unpaid','total_tagihan'=>0];

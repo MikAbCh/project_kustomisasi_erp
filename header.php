@@ -69,6 +69,14 @@
         </div>
 
         <a href="report_purchase.php" style="font-weight:bold; color:#ef7d00; border-top: 1px solid #34495e;">Reports</a>
+        <div style="padding: 15px 20px; font-size: 14px; color: #ef7d00; font-weight: bold; background: #1a252f;">
+            📦 Inventory
+        </div>
+        <div class="submenu">
+            <a href="barangmasuk.php">Barang Masuk</a>
+            <a href="lokasi.php">Lokasi</a>
+            <a href="barangkeluar.php">Barang Keluar</a>
+        </div>
     </div>
 
     <div class="main-content">

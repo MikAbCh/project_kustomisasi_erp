@@ -5,6 +5,7 @@ include 'header.php';
 // 1. LOGIKA DELETE
 if (isset($_GET['delete'])) {
     $id = $_GET['delete'];
+    // Cek FK constraint (opsional, tapi disarankan)
     if (mysqli_query($conn, "DELETE FROM product WHERE id_product = $id")) {
         header("Location: product.php?msg=deleted");
     }
@@ -12,25 +13,26 @@ if (isset($_GET['delete'])) {
 
 // 2. LOGIKA SAVE (Create & Update)
 if (isset($_POST['save_product'])) {
-    $id      = $_POST['id_product'];
-    $nama    = mysqli_real_escape_string($conn, $_POST['nama_product']);
-    $sku     = mysqli_real_escape_string($conn, $_POST['sku']);
-    $tipe    = $_POST['tipe_product'];
-    $harga   = $_POST['harga_jual'];
-    $biaya   = $_POST['biaya_standar'];
-    $satuan  = $_POST['satuan_unit'];
+    $id       = $_POST['id_product'];
+    $nama     = mysqli_real_escape_string($conn, $_POST['nama_product']);
+    $sku      = mysqli_real_escape_string($conn, $_POST['sku']);
+    $tipe     = $_POST['tipe_product'];
+    $harga    = $_POST['harga_jual'];
+    $biaya    = $_POST['biaya_standar'];
+    $satuan   = $_POST['satuan_unit'];
     $stok_min = $_POST['stok_minimal'];
+    $stok_akt = $_POST['stok_aktual']; // Field Baru
 
     if (empty($id)) {
-        // Create - Sesuaikan dengan kolom DESC Anda
-        $sql = "INSERT INTO product (nama_product, sku, tipe_product, harga_jual, biaya_standar, stok_minimal, satuan_unit) 
-                VALUES ('$nama', '$sku', '$tipe', '$harga', '$biaya', '$stok_min', '$satuan')";
+        // Create
+        $sql = "INSERT INTO product (nama_product, sku, tipe_product, harga_jual, biaya_standar, stok_minimal, stok_aktual, satuan_unit) 
+                VALUES ('$nama', '$sku', '$tipe', '$harga', '$biaya', '$stok_min', '$stok_akt', '$satuan')";
     } else {
-        // Update - Sesuaikan dengan kolom DESC Anda
+        // Update
         $sql = "UPDATE product SET 
                 nama_product='$nama', sku='$sku', tipe_product='$tipe', 
                 harga_jual='$harga', biaya_standar='$biaya', 
-                stok_minimal='$stok_min', satuan_unit='$satuan' 
+                stok_minimal='$stok_min', stok_aktual='$stok_akt', satuan_unit='$satuan' 
                 WHERE id_product=$id";
     }
 
@@ -43,7 +45,7 @@ if (isset($_POST['save_product'])) {
 $val = [
     'id_product' => '', 'nama_product' => '', 'sku' => '', 
     'tipe_product' => 'storable', 'harga_jual' => 0, 
-    'biaya_standar' => 0, 'satuan_unit' => 'pcs', 'stok_minimal' => 0
+    'biaya_standar' => 0, 'satuan_unit' => 'pcs', 'stok_minimal' => 0, 'stok_aktual' => 0
 ];
 
 if (isset($_GET['edit'])) {
@@ -65,12 +67,12 @@ if (isset($_GET['edit'])) {
     <form method="POST" action="product.php">
         <input type="hidden" name="id_product" value="<?= $val['id_product'] ?>">
         
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
             <div style="grid-column: span 2;">
                 <label>Nama Produk</label>
                 <input type="text" name="nama_product" style="width:100%; padding:8px; margin-top:5px;" value="<?= $val['nama_product'] ?>" required>
             </div>
-            <div>
+            <div style="grid-column: span 2;">
                 <label>SKU (Internal Reference)</label>
                 <input type="text" name="sku" style="width:100%; padding:8px; margin-top:5px;" value="<?= $val['sku'] ?>" placeholder="e.g. LAP-001">
             </div>
@@ -91,10 +93,14 @@ if (isset($_GET['edit'])) {
                 <input type="number" name="stok_minimal" style="width:100%; padding:8px; margin-top:5px;" value="<?= $val['stok_minimal'] ?>">
             </div>
             <div>
+                <label style="color: #ef7d00; font-weight: bold;">Stok Aktual (On Hand)</label>
+                <input type="number" name="stok_aktual" style="width:100%; padding:8px; margin-top:5px; border: 1px solid #ef7d00;" value="<?= $val['stok_aktual'] ?>">
+            </div>
+            <div style="grid-column: span 2;">
                 <label>Harga Jual</label>
                 <input type="number" step="0.01" name="harga_jual" style="width:100%; padding:8px; margin-top:5px;" value="<?= $val['harga_jual'] ?>">
             </div>
-            <div>
+            <div style="grid-column: span 2;">
                 <label>Biaya Standar (Modal)</label>
                 <input type="number" step="0.01" name="biaya_standar" style="width:100%; padding:8px; margin-top:5px;" value="<?= $val['biaya_standar'] ?>">
             </div>
@@ -123,7 +129,7 @@ if (isset($_GET['edit'])) {
             <tr>
                 <th>SKU</th>
                 <th>Product Name</th>
-                <th>Type</th>
+                <th style="text-align:center">Stok On Hand</th>
                 <th style="text-align:right">Sales Price</th>
                 <th style="text-align:right">Cost</th>
                 <th style="text-align:center">Actions</th>
@@ -139,10 +145,16 @@ if (isset($_GET['edit'])) {
             $result = mysqli_query($conn, "SELECT * FROM product $search_query ORDER BY id_product DESC");
             if (mysqli_num_rows($result) > 0) {
                 while($row = mysqli_fetch_assoc($result)) {
+                    // Beri warna merah jika stok aktual di bawah stok minimal
+                    $stok_style = ($row['stok_aktual'] <= $row['stok_minimal']) ? "color:red; font-weight:bold;" : "font-weight:bold;";
+                    
                     echo "<tr>
                         <td><code>" . ($row['sku'] ?: '-') . "</code></td>
                         <td><strong>{$row['nama_product']}</strong><br><small>Unit: {$row['satuan_unit']}</small></td>
-                        <td>" . ucfirst($row['tipe_product']) . "</td>
+                        <td style='text-align:center; $stok_style'>
+                            {$row['stok_aktual']} <br>
+                            <small style='color:#888; font-weight:normal;'>Min: {$row['stok_minimal']}</small>
+                        </td>
                         <td style='text-align:right'>" . number_format($row['harga_jual'], 0, ',', '.') . "</td>
                         <td style='text-align:right'>" . number_format($row['biaya_standar'], 0, ',', '.') . "</td>
                         <td style='text-align:center'>
