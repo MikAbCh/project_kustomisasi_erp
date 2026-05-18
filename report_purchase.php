@@ -1,6 +1,5 @@
 <?php 
-include 'config.php'; 
-include 'header.php'; 
+include 'config.php';  
 
 // Ambil parameter filter dari URL
 $type  = $_GET['type'] ?? 'month'; // default ke bulan
@@ -26,6 +25,8 @@ $query = "SELECT COUNT(id_purchase) as total_po, SUM(total_keseluruhan) as grand
           FROM transaksi_purchase p $where_clause";
 $result = mysqli_query($conn, $query);
 $data = mysqli_fetch_assoc($result);
+
+include 'header.php';
 ?>
 
 <div class="header-bar">

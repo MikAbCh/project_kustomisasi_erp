@@ -1,6 +1,5 @@
 <?php 
 include 'config.php'; 
-include 'header.php'; 
 
 // LOGIKA VALIDASI BARANG KELUAR
 if (isset($_POST['validate_outgoing'])) {
@@ -41,6 +40,7 @@ if (isset($_POST['validate_outgoing'])) {
         echo "Error: " . $e->getMessage();
     }
 }
+include 'header.php'; 
 ?>
 
 <div class="header-bar">

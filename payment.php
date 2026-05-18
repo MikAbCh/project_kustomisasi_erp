@@ -1,6 +1,5 @@
 <?php 
 include 'config.php'; 
-include 'header.php'; 
 
 // 1. LOGIKA DELETE
 if (isset($_GET['delete'])) {
@@ -52,6 +51,7 @@ if (isset($_GET['edit'])) {
     $res = mysqli_query($conn, "SELECT * FROM payment WHERE id_payment = $id");
     $val = mysqli_fetch_assoc($res);
 }
+include 'header.php'; 
 ?>
 
 <div class="header-bar">

@@ -1,6 +1,5 @@
 <?php 
 include 'config.php'; 
-include 'header.php'; 
 
 // 1. LOGIKA SAVE (Create & Update)
 if (isset($_POST['save_lokasi'])) {
@@ -40,6 +39,7 @@ if (isset($_GET['edit'])) {
     $res = mysqli_query($conn, "SELECT * FROM lokasi WHERE id_lokasi = $id");
     $val = mysqli_fetch_assoc($res);
 }
+include 'header.php'; 
 ?>
 
 <div class="header-bar">

@@ -1,6 +1,5 @@
 <?php 
 include 'config.php'; 
-include 'header.php'; 
 
 // 1. LOGIKA DELETE (Hapus Data)
 if (isset($_GET['delete'])) {
@@ -51,6 +50,7 @@ if (isset($_GET['edit'])) {
         $val = mysqli_fetch_assoc($res);
     }
 }
+include 'header.php'; 
 ?>
 
 <div class="header-bar">
