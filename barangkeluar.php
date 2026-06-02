@@ -1,14 +1,13 @@
 <?php 
 include 'config.php'; 
-include 'header.php'; 
 
 // LOGIKA VALIDASI BARANG KELUAR
 if (isset($_POST['validate_outgoing'])) {
-    $id_prod   = $_POST['id_product'];
-    $id_loc    = $_POST['id_lokasi'];
-    $qty       = $_POST['qty_keluar'];
-    $ref_so    = mysqli_real_escape_string($conn, $_POST['ref_so']);
-    $note      = mysqli_real_escape_string($conn, $_POST['keterangan']);
+    $id_prod    = $_POST['id_product'];
+    $id_loc     = $_POST['id_lokasi'];
+    $qty        = $_POST['qty_keluar'];
+    $id_sales   = $_POST['id_sales_ref']; // Mengambil ID Sales dari select option
+    $note       = mysqli_real_escape_string($conn, $_POST['keterangan']);
     $tgl_keluar = date('Y-m-d H:i:s');
 
     // 1. Availability Check (Prinsip Odoo: Mencegah Stok Minus)
@@ -23,8 +22,16 @@ if (isset($_POST['validate_outgoing'])) {
 
     mysqli_begin_transaction($conn);
     try {
-        // Gabungkan referensi SO ke keterangan jika ada
-        $final_note = (!empty($ref_so)) ? "[$ref_so] " . $note : $note;
+        // Tentukan teks keterangan / memo berdasarkan opsi SO
+        if (!empty($id_sales)) {
+            // Ambil format teks SO (e.g. SO/2026/0001) untuk disimpan ke memo histori
+            $q_so_text = mysqli_query($conn, "SELECT id_sales, tanggal_order FROM transaksi_sales WHERE id_sales = $id_sales");
+            $d_so_text = mysqli_fetch_assoc($q_so_text);
+            $so_ref_text = "SO/" . date('Y', strtotime($d_so_text['tanggal_order'])) . "/" . str_pad($d_so_text['id_sales'], 4, '0', STR_PAD_LEFT);
+            $final_note = "[$so_ref_text] " . $note;
+        } else {
+            $final_note = $note;
+        }
 
         // 2. Insert ke histori barang_keluar
         $sql_out = "INSERT INTO barang_keluar (id_product, id_lokasi, qty_keluar, tanggal_keluar, keterangan) 
@@ -34,13 +41,21 @@ if (isset($_POST['validate_outgoing'])) {
         // 3. Update Stok Fisik (Pengurangan)
         mysqli_query($conn, "UPDATE product SET stok_aktual = stok_aktual - $qty WHERE id_product = $id_prod");
 
+        // 4. JIKA MENGGUNAKAN SO: Ubah status transaksi_sales menjadi 'done'
+        if (!empty($id_sales)) {
+            mysqli_query($conn, "UPDATE transaksi_sales SET status_dokumen = 'done' WHERE id_sales = $id_sales");
+        }
+
         mysqli_commit($conn);
         header("Location: barangkeluar.php?msg=shipped");
+        exit;
     } catch (Exception $e) {
         mysqli_rollback($conn);
         echo "Error: " . $e->getMessage();
+        exit;
     }
 }
+include 'header.php'; 
 ?>
 
 <div class="header-bar">
@@ -48,14 +63,29 @@ if (isset($_POST['validate_outgoing'])) {
     <button onclick="toggleForm()" class="btn-orange">+ Create Delivery</button>
 </div>
 
-<!-- FORM BARANG KELUAR -->
 <div id="form-keluar" class="card" style="display:none; margin-bottom: 25px; border-left: 5px solid #d9534f;">
     <h3>Shipment Validation</h3>
     <form method="POST" style="margin-top: 15px;">
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+            
+            <div style="grid-column: span 3; background: #fcf8e3; padding: 10px; border-radius: 4px; border: 1px solid #faebcc;">
+                <label style="color: #8a6d3b; font-weight: bold;">Source Document / Sales Order Reference (Optional)</label>
+                <select name="id_sales_ref" id="id_sales_ref" class="form-control" style="width:100%; padding:8px; margin-top:5px;" onchange="loadSalesOrderData()">
+                    <option value="">-- Manual Input (No Sales Order) --</option>
+                    <?php 
+                    // Mengambil SO dengan status 'sale' (ready to deliver)
+                    $so_list = mysqli_query($conn, "SELECT s.id_sales, s.tanggal_order, c.nama_pelanggan FROM transaksi_sales s JOIN customer c ON s.fk_customer = c.id_customer WHERE s.status_dokumen = 'sale' ORDER BY s.id_sales DESC");
+                    while($so = mysqli_fetch_assoc($so_list)) {
+                        $so_ref = "SO/" . date('Y', strtotime($so['tanggal_order'])) . "/" . str_pad($so['id_sales'], 4, '0', STR_PAD_LEFT);
+                        echo "<option value='{$so['id_sales']}'>{$so_ref} - {$so['nama_pelanggan']}</option>";
+                    }
+                    ?>
+                </select>
+            </div>
+
             <div>
                 <label>Product</label>
-                <select name="id_product" class="form-control" required style="width:100%; padding:8px;">
+                <select name="id_product" id="id_product" class="form-control" required style="width:100%; padding:8px;">
                     <option value="">-- Select Product --</option>
                     <?php 
                     $p_list = mysqli_query($conn, "SELECT id_product, nama_product, stok_aktual FROM product WHERE stok_aktual > 0");
@@ -76,13 +106,10 @@ if (isset($_POST['validate_outgoing'])) {
             </div>
             <div>
                 <label>Quantity to Deliver</label>
-                <input type="number" name="qty_keluar" min="1" class="form-control" required style="width:100%; padding:8px;">
+                <input type="number" name="qty_keluar" id="qty_keluar" min="1" class="form-control" required style="width:100%; padding:8px;">
             </div>
-            <div>
-                <label>Sales Order Ref (Optional)</label>
-                <input type="text" name="ref_so" placeholder="e.g. SO/2026/001" class="form-control" style="width:100%; padding:8px;">
-            </div>
-            <div style="grid-column: span 2;">
+            
+            <div style="grid-column: span 3;">
                 <label>Notes / Delivery Reason</label>
                 <input type="text" name="keterangan" placeholder="e.g. Kirim ke pelanggan atau internal use" class="form-control" style="width:100%; padding:8px;">
             </div>
@@ -94,7 +121,43 @@ if (isset($_POST['validate_outgoing'])) {
     </form>
 </div>
 
-<!-- TABEL HISTORI KELUAR -->
+<?php 
+$so_mapping = [];
+$q_map = mysqli_query($conn, "SELECT fk_sales, fk_product, qty FROM transaksi_sales_line");
+while($m = mysqli_fetch_assoc($q_map)) {
+    $so_mapping[$m['fk_sales']] = [
+        'id_product' => $m['fk_product'],
+        'qty' => $m['qty']
+    ];
+}
+?>
+<script>
+// Parsing data line SO ke objek javascript
+const salesOrderData = <?= json_encode($so_mapping) ?>;
+
+function loadSalesOrderData() {
+    const soID = document.getElementById('id_sales_ref').value;
+    const productSelect = document.getElementById('id_product');
+    const qtyInput = document.getElementById('qty_keluar');
+
+    if (soID && salesOrderData[soID]) {
+        // Otomatis pilih item produk dan qty berdasarkan baris data SO
+        productSelect.value = salesOrderData[soID]['id_product'];
+        qtyInput.value = salesOrderData[soID]['qty'];
+        
+        // Buat agar inputan menjadi semi-locked (readonly) demi validitas data SO
+        qtyInput.setAttribute('readonly', 'true');
+        productSelect.style.pointerEvents = 'none'; 
+    } else {
+        // Jika opsi manual (tanpa SO) dipilih, kembalikan kontrol form penuh ke pengguna
+        productSelect.value = "";
+        qtyInput.value = "";
+        qtyInput.removeAttribute('readonly');
+        productSelect.style.pointerEvents = 'auto';
+    }
+}
+</script>
+
 <div class="card">
     <table class="table-odoo">
         <thead>
@@ -119,7 +182,7 @@ if (isset($_POST['validate_outgoing'])) {
                 <td><?= date('d M Y H:i', strtotime($row['tanggal_keluar'])) ?></td>
                 <td><strong><?= $row['nama_product'] ?></strong></td>
                 <td>WH/STOCK/<?= strtoupper($row['nama_gudang']) ?>/<?= $row['blok_rak'] ?></td>
-                <td style="text-align:right; color:red; font-weight:bold;">- <?= $row['qty_keluar'] ?></td>
+                <td style="text-align:right; color:red; font-weight:bold;"> <?= $row['qty_keluar'] ?></td>
                 <td><small><?= $row['keterangan'] ?></small></td>
                 <td><span class="badge" style="background:#5bc0de; color:white; padding:4px 8px; border-radius:4px; font-size:10px;">SHIPPED</span></td>
             </tr>
@@ -137,3 +200,5 @@ function toggleForm() {
     x.style.display = (x.style.display === "none") ? "block" : "none";
 }
 </script>
+
+<?php echo "</div></body></html>"; ?>

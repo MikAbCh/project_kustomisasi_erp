@@ -1,6 +1,5 @@
 <?php 
 include 'config.php'; 
-include 'header.php'; 
 
 // LOGIKA VALIDASI PENERIMAAN DARI PO
 if (isset($_POST['validate_po_receipt'])) {
@@ -39,6 +38,8 @@ if (isset($_POST['validate_po_receipt'])) {
         echo "Error: " . $e->getMessage();
     }
 }
+
+include 'header.php'; 
 ?>
 
 <div class="header-bar">
@@ -107,7 +108,7 @@ if (isset($_POST['validate_po_receipt'])) {
                 <td><strong><?= $row['nama_product'] ?></strong></td>
                 <td><?= $row['keterangan'] ?></td>
                 <td><?= $row['nama_gudang'] ?></td>
-                <td style="color:green; font-weight:bold;">+ <?= $row['qty_masuk'] ?></td>
+                <td style="color:green; font-weight:bold;"> <?= $row['qty_masuk'] ?></td>
                 <td><span class="badge bg-posted">DONE</span></td>
             </tr>
             <?php endwhile; ?>

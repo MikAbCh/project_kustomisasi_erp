@@ -1,6 +1,5 @@
 <?php 
 include 'config.php'; 
-include 'header.php'; 
 
 // 1. LOGIKA DELETE
 if (isset($_GET['delete'])) {
@@ -63,6 +62,8 @@ if (isset($_POST['save_purchase'])) {
     }
     header("Location: purchase.php?msg=success");
 }
+
+include 'header.php'; 
 
 // 3. AMBIL DATA UNTUK EDIT
 $val = ['id_purchase'=>'','nama_perusahaan'=>'','tanggal_order'=>date('Y-m-d'),'status_dokumen'=>'draft','pajak_ppn'=>0];
