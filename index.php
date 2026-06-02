@@ -7,6 +7,7 @@ $count_supplier = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as tot
 $count_product  = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM product"))['total'];
 $count_po       = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM transaksi_purchase"))['total'];
 $total_inv      = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(total_tagihan) as total FROM invoice"))['total'];
+$count_so       = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM transaksi_sales"))['total'];
 ?>
 
 <style>
@@ -95,6 +96,13 @@ $total_inv      = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(total_tagih
         <h4>Invoices</h4>
         <div class="stat-number">Rp <?php echo number_format($total_inv ?? 0, 0, ',', '.'); ?></div>
         <p style="font-size: 12px; color: #888;">Total Tagihan Vendor</p>
+    </a>
+
+    <a href="sales.php" class="menu-card">
+        <div class="icon-box">P</div>
+        <h4>Sales</h4>
+        <div class="stat-number"><?php echo $count_so; ?></div>
+        <p style="font-size: 12px; color: #888;">Jumlah Transaksi Penjualan</p>
     </a>
 </div>
 
