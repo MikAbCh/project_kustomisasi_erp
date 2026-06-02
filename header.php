@@ -9,7 +9,7 @@
 
         /* SIDEBAR ODOO STYLE */
         .sidebar { width: 180px; background-color: #2c3e50; min-height: 100vh; position: fixed; color: white; }
-        .sidebar h2 { padding: 25px 20px; font-size: 1.2rem; color: #ef7d00; text-align: center; border-bottom: 1px solid #34495e; }
+        .sidebar h2 { padding: 15px 10px; font-size: 1.2rem; color: #ef7d00; text-align: center; border-bottom: 1px solid #34495e; }
         .sidebar a { display: block; color: #ced4da; padding: 15px 20px; text-decoration: none; font-size: 14px; transition: 0.3s; }
         .sidebar a:hover { background-color: #ef7d00; color: white; padding-left: 25px; }
         .sidebar a.active { background-color: #ef7d00; color: white; border-left: 5px solid #fff; }
@@ -55,7 +55,7 @@
         <a href="index.php" style="border-bottom: 2px solid #1a252f; font-weight: bold;">🏠 Dashboard</a>
         
         <!-- Header Menu Purchasing -->
-        <div style="padding: 15px 20px; font-size: 14px; color: #ef7d00; font-weight: bold; background: #1a252f;">
+        <div style="padding: 10px 15px; font-size: 14px; color: #ef7d00; font-weight: bold; background: #1a252f;">
             🛒 Purchasing
         </div>
         
@@ -69,13 +69,20 @@
         </div>
 
         <a href="report_purchase.php" style="font-weight:bold; color:#ef7d00; border-top: 1px solid #34495e;">Reports</a>
-        <div style="padding: 15px 20px; font-size: 14px; color: #ef7d00; font-weight: bold; background: #1a252f;">
+        <div style="padding: 10px 15px; font-size: 14px; color: #ef7d00; font-weight: bold; background: #1a252f;">
             📦 Inventory
         </div>
         <div class="submenu">
             <a href="barangmasuk.php">Barang Masuk</a>
             <a href="lokasi.php">Lokasi</a>
             <a href="barangkeluar.php">Barang Keluar</a>
+        </div>
+        <div style="padding: 10px 15px; font-size: 14px; color: #ef7d00; font-weight: bold; background: #1a252f;">
+            Sales
+        </div>
+        <div class="submenu">
+            <a href="customer.php">Customer</a>
+            <a href="sales.php">Sales Order</a>
         </div>
     </div>
 

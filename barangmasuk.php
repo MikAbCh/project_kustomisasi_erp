@@ -108,7 +108,7 @@ include 'header.php';
                 <td><strong><?= $row['nama_product'] ?></strong></td>
                 <td><?= $row['keterangan'] ?></td>
                 <td><?= $row['nama_gudang'] ?></td>
-                <td style="color:green; font-weight:bold;">+ <?= $row['qty_masuk'] ?></td>
+                <td style="color:green; font-weight:bold;"> <?= $row['qty_masuk'] ?></td>
                 <td><span class="badge bg-posted">DONE</span></td>
             </tr>
             <?php endwhile; ?>
