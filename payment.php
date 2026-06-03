@@ -15,7 +15,7 @@ if (isset($_GET['delete'])) {
     }
 }
 
-// 2. LOGIKA SAVE (Create & Update)
+// 2. LOGIKA SAVE (Create & Update) - PERBAIKAN TYPO DI SINI
 if (isset($_POST['save_payment'])) {
     $id         = $_POST['id_payment'];
     $fk_invoice = $_POST['fk_invoice'];
@@ -65,18 +65,27 @@ include 'header.php';
         
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
             <div>
-                <label><strong>Select Invoice to Pay</strong></label>
+                <label><strong>Select Invoice to Pay / Receive</strong></label>
                 <select name="fk_invoice" style="width:100%; padding:8px; margin-top:5px;" required>
                     <option value="">-- Select Unpaid Invoice --</option>
                     <?php 
-                    // Tampilkan invoice yang belum lunas (atau yang sedang diedit)
-                    $inv_list = mysqli_query($conn, "SELECT i.id_invoice, i.total_tagihan, s.nama_perusahaan 
-                                                    FROM invoice i 
-                                                    JOIN transaksi_purchase p ON i.fk_purchase = p.id_purchase 
-                                                    JOIN supplier s ON p.fk_supplier = s.id_supplier");
+                    // Mengambil data foreign key (fk_purchase & fk_sales) langsung dari tabel invoice
+                    $inv_list = mysqli_query($conn, "SELECT id_invoice, total_tagihan, fk_purchase, fk_sales, nomor_invoice_vendor 
+                                                    FROM invoice 
+                                                    WHERE status_pembayaran != 'paid' OR id_invoice = '{$val['fk_invoice']}'");
                     while($i = mysqli_fetch_assoc($inv_list)) {
                         $sel = ($i['id_invoice'] == $val['fk_invoice']) ? 'selected' : '';
-                        echo "<option value='{$i['id_invoice']}' $sel>INV #00{$i['id_invoice']} - {$i['nama_perusahaan']} (IDR ".number_format($i['total_tagihan'],0).")</option>";
+                        
+                        // Cek acuan foreign key untuk penanda dropdown
+                        if (!empty($i['fk_purchase'])) {
+                            $tipe = '[PURCHASING / PO]';
+                        } else {
+                            $tipe = '[SALES / SO]';
+                        }
+                        
+                        $ref_num = !empty($i['nomor_invoice_vendor']) ? " (".$i['nomor_invoice_vendor'].")" : "";
+
+                        echo "<option value='{$i['id_invoice']}' $sel>$tipe INV #00{$i['id_invoice']}{$ref_num} - IDR ".number_format($i['total_tagihan'],0, ',', '.')."</option>";
                     }
                     ?>
                 </select>
@@ -115,6 +124,7 @@ include 'header.php';
         <thead>
             <tr>
                 <th>Payment ID</th>
+                <th>Category</th>
                 <th>Invoice Ref</th>
                 <th>Date</th>
                 <th>Method</th>
@@ -124,12 +134,24 @@ include 'header.php';
         </thead>
         <tbody>
             <?php
-            $sql = "SELECT pay.*, inv.id_invoice FROM payment pay 
-                    JOIN invoice inv ON pay.fk_invoice = inv.id_invoice ORDER BY pay.id_payment DESC";
+            // Query JOIN yang ringan, hanya mengambil fk_purchase dan fk_sales dari tabel invoice
+            $sql = "SELECT pay.*, inv.id_invoice, inv.fk_purchase, inv.fk_sales 
+                    FROM payment pay 
+                    JOIN invoice inv ON pay.fk_invoice = inv.id_invoice 
+                    ORDER BY pay.id_payment DESC";
             $res = mysqli_query($conn, $sql);
             while($row = mysqli_fetch_assoc($res)) {
+                
+                // Cek acuan foreign key untuk penanda Badge halaman awal
+                if (!empty($row['fk_purchase'])) {
+                    $badge = "<span style='background:#d9534f; color:white; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;'>PURCHASING</span>";
+                } else {
+                    $badge = "<span style='background:#2ecc71; color:white; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;'>SALES</span>";
+                }
+
                 echo "<tr>
                     <td><strong>PAY/".str_pad($row['id_payment'], 3, '0', STR_PAD_LEFT)."</strong></td>
+                    <td>{$badge}</td>
                     <td>INV #00{$row['id_invoice']}</td>
                     <td>{$row['tanggal_bayar']}</td>
                     <td>{$row['metode_pembayaran']}</td>

@@ -115,7 +115,7 @@ include 'header.php';
             <button type="submit" class="btn-orange" style="padding:5px 10px; font-size:12px; background:#555;">Apply Product</button>
         </div>
         
-        <a href="report_purchase.php" style="font-size:12px; color:#d9534f; font-weight:bold; margin-left: auto; align-self: center; text-decoration:none;">❌ Reset Filter</a>
+        <a href="reporting.php" style="font-size:12px; color:#d9534f; font-weight:bold; margin-left: auto; align-self: center; text-decoration:none;">❌ Reset Filter</a>
     </form>
 </div>
 

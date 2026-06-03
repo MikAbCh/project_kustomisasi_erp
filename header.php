@@ -94,11 +94,16 @@
             <a href="purchase.php">Purchase Orders</a>
             <a href="supplier.php">Suppliers</a>
             <a href="product.php">Products</a>
-            <a href="invoice.php">Invoices</a>
-            <a href="payment.php">Payments</a>
         </div>
         
-        <a href="reporting.php" style="font-weight:bold; color:#ef7d00; border-top: 1px solid #34495e;">Reports</a>
+       <div style="padding: 10px 15px; font-size: 14px; color: #ef7d00; font-weight: bold; background: #1a252f;">
+            Finance
+        </div>
+        <div class="submenu">
+            <a href="invoice.php">Invoices</a>
+            <a href="payment.php">Payments</a>
+             <a href="reporting.php">Reporting</a>
+        </div>
                 
         <div style="padding: 10px 15px; font-size: 14px; color: #ef7d00; font-weight: bold; background: #1a252f;">
             📦 Inventory
