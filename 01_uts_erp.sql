@@ -3,7 +3,11 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
+<<<<<<< HEAD
+-- Waktu pembuatan: 18 Bulan Mei 2026 pada 07.33
+=======
 -- Waktu pembuatan: 02 Jun 2026 pada 10.50
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -41,6 +45,11 @@ CREATE TABLE `barang_keluar` (
 --
 
 INSERT INTO `barang_keluar` (`id_keluar`, `id_product`, `id_lokasi`, `qty_keluar`, `tanggal_keluar`, `keterangan`) VALUES
+<<<<<<< HEAD
+(1, 7, 1, 1, '2026-05-18 02:39:19', ''),
+(2, 8, 1, 1, '2026-05-18 02:39:40', ''),
+(3, 3, 1, 1, '2026-05-18 04:25:33', 'Adam mau pake');
+=======
 (1, 11, 2, 10, '2026-05-25 08:36:47', 'Adam pake buat konsum meeting dengan petinggi PwC'),
 (2, 11, 1, 2, '2026-05-25 08:57:50', 'Test'),
 (3, 11, 2, 1, '2026-05-25 09:29:25', '[SO/2026/0001] haus habis main golf bareng ceo PwC'),
@@ -48,6 +57,7 @@ INSERT INTO `barang_keluar` (`id_keluar`, `id_product`, `id_lokasi`, `qty_keluar
 (5, 11, 3, 5, '2026-05-25 09:46:32', '[SO/2026/0004] '),
 (6, 8, 3, 5, '2026-05-25 09:47:09', 'ke cilibut'),
 (7, 11, 2, 5, '2026-05-25 10:10:18', '[SO/2026/0006] ');
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 -- --------------------------------------------------------
 
@@ -70,6 +80,13 @@ CREATE TABLE `barang_masuk` (
 --
 
 INSERT INTO `barang_masuk` (`id_masuk`, `id_product`, `id_supplier`, `id_lokasi`, `qty_masuk`, `tanggal_masuk`, `keterangan`) VALUES
+<<<<<<< HEAD
+(1, 8, 3, 1, 1, '2026-05-11 10:08:34', 'Received from PO #12'),
+(2, 7, 8, 1, 1, '2026-05-18 02:34:30', 'Received from PO #13'),
+(3, 7, 8, 1, 1, '2026-05-18 02:34:40', 'Received from PO #13'),
+(4, 8, 8, 1, 1, '2026-05-18 02:36:24', 'Received from PO #14'),
+(5, 3, 3, 1, 1, '2026-05-18 04:25:07', 'Received from PO #15');
+=======
 (3, 11, 1, 1, 1, '2026-05-25 08:34:10', '[Adjustment Input Manual]'),
 (4, 11, 1, 2, 1, '2026-05-25 08:34:10', '[Adjustment Input Manual]'),
 (5, 11, 2, 2, 10, '2026-05-25 08:35:20', 'Received from PO #22'),
@@ -103,6 +120,7 @@ INSERT INTO `customer` (`id_customer`, `nama_pelanggan`, `alamat`, `email`, `tel
 (1, 'Adam', 'Bogor', 'adamzeinhadooppwc@gmail.com', '12345678900987654321', 'Cash', '2026-05-25 07:04:30'),
 (2, 'Aslam', 'cilebut', 'adam@gamil.com', '098765787', 'Net 30', '2026-05-25 07:31:14'),
 (3, 'Abe', 'Jalan Pulomas\r\n22', 'mikaelabechristanto@gmail.com', ' 110', 'Net 30', '2026-05-25 08:08:11');
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 -- --------------------------------------------------------
 
@@ -132,9 +150,13 @@ INSERT INTO `invoice` (`id_invoice`, `fk_purchase`, `nomor_invoice_vendor`, `tan
 (4, 4, 'INV/2026/3', '2026-04-13', '2026-04-13', 'posted', 'paid', 1110000.00),
 (5, 7, 'INV/2026/7', '2026-04-27', '2026-04-27', 'posted', 'paid', 333000.00),
 (6, 10, 'INV/2026/6767', '2026-05-18', '2026-05-19', 'draft', 'paid', 33300000.00),
+<<<<<<< HEAD
+(7, 9, 'INV/2026/100', '2026-05-18', '2026-05-18', 'draft', 'paid', 16650.00);
+=======
 (7, 9, 'INV/2026/100', '2026-05-18', '2026-05-18', 'draft', 'paid', 16650.00),
 (9, 23, 'INV/2026/6777878787', '2026-05-25', '2026-05-25', 'posted', 'paid', 222000.00),
 (10, 24, 'INV/2026/65432', '2026-05-25', '2026-05-25', 'posted', 'paid', 5550.00);
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 -- --------------------------------------------------------
 
@@ -154,9 +176,13 @@ CREATE TABLE `lokasi` (
 --
 
 INSERT INTO `lokasi` (`id_lokasi`, `nama_gudang`, `blok_rak`, `nomor_tingkat`) VALUES
+<<<<<<< HEAD
+(1, 'Gudang A', 'A1', 1);
+=======
 (1, 'Gudang A', 'A1', 1),
 (2, 'Gudang B', 'A2', 2),
 (3, 'Gudang C', 'C3', 3);
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 -- --------------------------------------------------------
 
@@ -185,9 +211,13 @@ INSERT INTO `payment` (`id_payment`, `fk_invoice`, `tanggal_bayar`, `metode_pemb
 (4, 4, '2026-04-13 08:47:00', 'Cash', 'Pembelian Lisensi', 1110000.00, NULL),
 (5, 5, '2026-04-27 08:20:00', 'Cash', '', 333333.00, NULL),
 (6, 6, '2026-05-18 06:57:00', 'Cash', '', 33300000.00, NULL),
+<<<<<<< HEAD
+(7, 7, '2026-05-18 07:11:00', 'Transfer Bank', '', 16650.00, NULL);
+=======
 (7, 7, '2026-05-18 07:11:00', 'Transfer Bank', '', 16650.00, NULL),
 (8, 9, '2026-05-25 09:41:00', 'Transfer Bank', 'bagus', 222000.00, NULL),
 (9, 10, '2026-05-25 10:05:00', 'Cash', '', 5500.00, NULL);
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 -- --------------------------------------------------------
 
@@ -215,10 +245,16 @@ INSERT INTO `product` (`id_product`, `nama_product`, `sku`, `tipe_product`, `har
 (1, 'Donut Adam', '001', 'storable', 15.00, 10.00, 0, 0, 'pcs'),
 (2, 'Susu Sapi Mentah', 'RAW-MILK-01', 'storable', 0.00, 11000.00, 0, 0, 'Liter'),
 (3, 'Lisensi Hadoop', '', 'storable', 0.00, 1000000.00, 0, 0, 'tahun'),
+<<<<<<< HEAD
+(7, 'Konsultan PwC', 'PwC-001', 'service', 0.00, 15000000.00, 0, 3, 'orang'),
+(8, 'Mie Yamin', 'JAYA-01', 'storable', 0.00, 15000.00, 0, 5, 'porsi'),
+(10, 'Stipendium Romo', 'KAJ-001', 'service', 300000.00, 300000.00, 0, 0, 'pcs');
+=======
 (7, 'Konsultan PwC', 'PwC-001', 'service', 20000000.00, 15000000.00, 0, 0, 'orang'),
 (8, 'Mie Yamin', 'JAYA-01', 'storable', 0.00, 15000.00, 0, 5, 'porsi'),
 (10, 'Stipendium Romo', 'KAJ-001', 'service', 300000.00, 300000.00, 0, 0, 'pcs'),
 (11, 'Pocari 500ML', 'POCARI_01', 'storable', 5000.00, 3000.00, 0, 1, 'pcs');
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 -- --------------------------------------------------------
 
@@ -242,7 +278,10 @@ CREATE TABLE `supplier` (
 --
 
 INSERT INTO `supplier` (`id_supplier`, `nama_perusahaan`, `alamat_lengkap`, `email_bisnis`, `no_telepon`, `npwp_tax_id`, `term_pembayaran_default`, `mata_uang`) VALUES
+<<<<<<< HEAD
+=======
 (1, 'INTERNAL ADJUSTMENT / SYSTEM', NULL, NULL, NULL, NULL, NULL, 'IDR'),
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 (2, 'PT XYZ', 'Jalan Pulomas', 'xyz@mail.com', '119', '1234567890', 'Cash', 'IDR'),
 (3, 'Donutskalbis', 'Stasiun Bogor', 'adamzeinhadoop@gmail.com', '911', '67676767676', 'Cash', 'IDR'),
 (4, 'Kalbis', 'Jalan Pulomas\r\n22', 'kalbis@ac.id', '112', '202410', 'Cash', 'IDR'),
@@ -250,9 +289,13 @@ INSERT INTO `supplier` (`id_supplier`, `nama_perusahaan`, `alamat_lengkap`, `ema
 (6, 'Koperasi Susu Makmur', 'Jalan Pulomas\r\n22', 'kontak@susumakmur.com', '12345', '1234', 'Cash', 'IDR'),
 (8, 'PT ABC', 'Jalan Pulomas\r\n22', 'mikaelabechristanto@gmail.com', '111', '12', 'Cash', 'IDR'),
 (9, 'PT 123', 'Jalan Pulomas\r\n22', 'mikaelabechristanto@gmail.com', '1111111', '987654321234', 'Cash', 'IDR'),
+<<<<<<< HEAD
+(10, 'KMK Kalbis', 'Jalan Pulomas\r\n22', 'ukr.kmk@kalbis.ac.id', '69696', '911911', 'Cash', 'IDR');
+=======
 (10, 'KMK Kalbis', 'Jalan Pulomas\r\n22', 'ukr.kmk@kalbis.ac.id', '69696', '911911', 'Cash', 'IDR'),
 (1000, 'PT. Jayabaya', 'pulogadung', 'mikaelabechristanto@gmail.com', '110', '', 'Net 30', 'IDR'),
 (1001, 'Bang Doel', 'Kandep', 'doel@mail.com', '0000000000', '12345678901234', 'Net 30', 'IDR');
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 -- --------------------------------------------------------
 
@@ -290,6 +333,9 @@ INSERT INTO `transaksi_purchase` (`id_purchase`, `fk_supplier`, `tanggal_order`,
 (12, 3, '2026-05-11', NULL, 'done', 15000.00, 1650.00, 16650.00),
 (13, 8, '2026-05-18', NULL, 'done', 15000000.00, 1650000.00, 16650000.00),
 (14, 8, '2026-05-18', NULL, 'done', 15000.00, 1650.00, 16650.00),
+<<<<<<< HEAD
+(15, 3, '2026-05-18', NULL, 'done', 1000000.00, 110000.00, 1110000.00);
+=======
 (15, 3, '2026-05-18', NULL, 'done', 1000000.00, 110000.00, 1110000.00),
 (18, 2, '2026-05-18', NULL, 'done', 15000.00, 1650.00, 16650.00),
 (19, 2, '2026-05-18', NULL, 'done', 10000.00, 1100.00, 11100.00),
@@ -298,6 +344,7 @@ INSERT INTO `transaksi_purchase` (`id_purchase`, `fk_supplier`, `tanggal_order`,
 (22, 2, '2026-05-25', NULL, 'done', 50000.00, 5500.00, 55500.00),
 (23, 1000, '2026-05-25', NULL, 'done', 200000.00, 22000.00, 222000.00),
 (24, 8, '2026-05-25', NULL, 'done', 5000.00, 550.00, 5550.00);
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 -- --------------------------------------------------------
 
@@ -336,6 +383,9 @@ INSERT INTO `transaksi_purchase_line` (`id_purchase_line`, `fk_purchase`, `fk_pr
 (22, 12, 8, 1, 15000.00, 15000.00),
 (24, 13, 7, 1, 15000000.00, 15000000.00),
 (25, 14, 8, 1, 15000.00, 15000.00),
+<<<<<<< HEAD
+(26, 15, 3, 1, 1000000.00, 1000000.00);
+=======
 (26, 15, 3, 1, 1000000.00, 1000000.00),
 (33, 18, 11, 1, 5000.00, 5000.00),
 (34, 18, 2, 1, 10000.00, 10000.00),
@@ -405,6 +455,7 @@ INSERT INTO `transaksi_sales_line` (`id_sales_line`, `fk_sales`, `fk_product`, `
 (6, 4, 11, 5, 6000.00, 30000.00),
 (7, 5, 11, 5, 5000.00, 25000.00),
 (8, 6, 11, 5, 5000.00, 25000.00);
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 --
 -- Indexes for dumped tables
@@ -428,12 +479,15 @@ ALTER TABLE `barang_masuk`
   ADD KEY `id_lokasi` (`id_lokasi`);
 
 --
+<<<<<<< HEAD
+=======
 -- Indeks untuk tabel `customer`
 --
 ALTER TABLE `customer`
   ADD PRIMARY KEY (`id_customer`);
 
 --
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 -- Indeks untuk tabel `invoice`
 --
 ALTER TABLE `invoice`
@@ -504,12 +558,19 @@ ALTER TABLE `transaksi_sales_line`
 -- AUTO_INCREMENT untuk tabel `barang_keluar`
 --
 ALTER TABLE `barang_keluar`
+<<<<<<< HEAD
+  MODIFY `id_keluar` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+=======
   MODIFY `id_keluar` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 --
 -- AUTO_INCREMENT untuk tabel `barang_masuk`
 --
 ALTER TABLE `barang_masuk`
+<<<<<<< HEAD
+  MODIFY `id_masuk` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+=======
   MODIFY `id_masuk` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
@@ -517,47 +578,75 @@ ALTER TABLE `barang_masuk`
 --
 ALTER TABLE `customer`
   MODIFY `id_customer` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 --
 -- AUTO_INCREMENT untuk tabel `invoice`
 --
 ALTER TABLE `invoice`
+<<<<<<< HEAD
+  MODIFY `id_invoice` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+=======
   MODIFY `id_invoice` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 --
 -- AUTO_INCREMENT untuk tabel `lokasi`
 --
 ALTER TABLE `lokasi`
+<<<<<<< HEAD
+  MODIFY `id_lokasi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+=======
   MODIFY `id_lokasi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 --
 -- AUTO_INCREMENT untuk tabel `payment`
 --
 ALTER TABLE `payment`
+<<<<<<< HEAD
+  MODIFY `id_payment` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+=======
   MODIFY `id_payment` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 --
 -- AUTO_INCREMENT untuk tabel `product`
 --
 ALTER TABLE `product`
+<<<<<<< HEAD
+  MODIFY `id_product` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+=======
   MODIFY `id_product` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 --
 -- AUTO_INCREMENT untuk tabel `supplier`
 --
 ALTER TABLE `supplier`
+<<<<<<< HEAD
+  MODIFY `id_supplier` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+=======
   MODIFY `id_supplier` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1002;
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 --
 -- AUTO_INCREMENT untuk tabel `transaksi_purchase`
 --
 ALTER TABLE `transaksi_purchase`
+<<<<<<< HEAD
+  MODIFY `id_purchase` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+=======
   MODIFY `id_purchase` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 --
 -- AUTO_INCREMENT untuk tabel `transaksi_purchase_line`
 --
 ALTER TABLE `transaksi_purchase_line`
+<<<<<<< HEAD
+  MODIFY `id_purchase_line` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+=======
   MODIFY `id_purchase_line` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
@@ -571,6 +660,7 @@ ALTER TABLE `transaksi_sales`
 --
 ALTER TABLE `transaksi_sales_line`
   MODIFY `id_sales_line` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+>>>>>>> b2ab6b7bcf82331015b58b192fee3366c79373ea
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
