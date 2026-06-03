@@ -95,10 +95,11 @@ if (isset($_GET['edit'])) {
                 <select name="fk_purchase" id="fk_purchase" style="width:100%; padding:8px; margin-top:5px;">
                     <option value="">-- Select PO --</option>
                     <?php 
-                    $po_list = mysqli_query($conn, "SELECT id_purchase, total_keseluruhan FROM transaksi_purchase");
+                    // PERUBAHAN MINOR: Menambahkan ORDER BY id_purchase DESC agar PO terbaru berada di paling atas
+                    $po_list = mysqli_query($conn, "SELECT id_purchase, total_keseluruhan FROM transaksi_purchase ORDER BY id_purchase DESC");
                     while($p = mysqli_fetch_assoc($po_list)) {
                         $sel = ($p['id_purchase'] == $val['fk_purchase']) ? 'selected' : '';
-                        echo "<option value='{$p['id_purchase']}' $sel>PO #00{$p['id_purchase']} (IDR ".number_format($p['total_keseluruhan'],0).")</option>";
+                        echo "<option value='{$p['id_purchase']}' $sel>PO #00{$p['id_purchase']} (IDR ".number_format($p['total_keseluruhan'],0, ',', '.').")</option>";
                     }
                     ?>
                 </select>
@@ -109,11 +110,11 @@ if (isset($_GET['edit'])) {
                 <select name="fk_sales" id="fk_sales" style="width:100%; padding:8px; margin-top:5px;">
                     <option value="">-- Select SO --</option>
                     <?php 
-                    // Mengambil SO berstatus 'sale' agar siap ditarik ke invoice
-                    $so_list = mysqli_query($conn, "SELECT id_sales, total_keseluruhan FROM transaksi_sales WHERE status_dokumen='sale'");
+                    // PERUBAHAN MINOR: Menambahkan ORDER BY id_sales DESC agar SO terbaru berada di paling atas
+                    $so_list = mysqli_query($conn, "SELECT id_sales, total_keseluruhan FROM transaksi_sales WHERE status_dokumen='sale' ORDER BY id_sales DESC");
                     while($s = mysqli_fetch_assoc($so_list)) {
                         $sel = ($s['id_sales'] == $val['fk_sales']) ? 'selected' : '';
-                        echo "<option value='{$s['id_sales']}' $sel>SO #00{$s['id_sales']} (IDR ".number_format($s['total_keseluruhan'],0).")</option>";
+                        echo "<option value='{$s['id_sales']}' $sel>SO #00{$s['id_sales']} (IDR ".number_format($s['total_keseluruhan'],0, ',', '.').")</option>";
                     }
                     ?>
                 </select>
@@ -176,7 +177,6 @@ if (isset($_GET['edit'])) {
         </thead>
         <tbody>
             <?php
-            // Mengubah JOIN menjadi LEFT JOIN agar data dengan fk_purchase NULL atau fk_sales NULL tidak hilang
             $sql = "SELECT i.*, p.id_purchase, s.id_sales 
                     FROM invoice i 
                     LEFT JOIN transaksi_purchase p ON i.fk_purchase = p.id_purchase 
@@ -186,7 +186,6 @@ if (isset($_GET['edit'])) {
             while($row = mysqli_fetch_assoc($res)) {
                 $pay_status = ($row['status_pembayaran'] == 'paid') ? 'bg-posted' : (($row['status_pembayaran'] == 'unpaid') ? 'bg-draft' : 'bg-sent');
                 
-                // Set penanda visual berdasarkan jenis invoice
                 if ($row['jenis_invoice'] == 'vendor') {
                     $type_badge = "<span style='color:#d9534f; font-weight:bold;'>[BILL]</span>";
                     $source_doc = "PO #00" . $row['id_purchase'];
@@ -220,7 +219,6 @@ function toggleForm() {
     x.style.display = (x.style.display === "none") ? "block" : "none"; 
 }
 
-// Fungsi mengatur perubahan kolom input form secara dinamis (Sudah Diperbaiki)
 function updateFormFields() {
     var jenis = document.getElementById("jenis_invoice").value;
     var boxPurchase = document.getElementById("box-purchase");
@@ -234,7 +232,6 @@ function updateFormFields() {
         boxSales.style.display = "none";
         labelRef.innerText = "Vendor Invoice Number";
         
-        // Pasang required di PO, lepas dari SO
         selectPurchase.setAttribute("required", "required");
         selectSales.removeAttribute("required");
     } else {
@@ -242,13 +239,11 @@ function updateFormFields() {
         boxSales.style.display = "block";
         labelRef.innerText = "Customer Invoice / Faktur Ref";
         
-        // Pasang required di SO, lepas dari PO (Perbaikan di sini)
         selectSales.setAttribute("required", "required");
         selectPurchase.removeAttribute("required"); 
     }
 }
 
-// Jalankan fungsi saat halaman memuat untuk menjaga state pengeditan (Mode Edit)
 window.onload = function() {
     updateFormFields();
 };
