@@ -2,38 +2,35 @@
 include 'config.php';  
 
 // Ambil parameter filter dari URL
+$module      = $_GET['module'] ?? 'purchase'; // purchase, sales, atau profit
 $type        = $_GET['type'] ?? ''; 
 $day         = $_GET['day'] ?? '';
 $month       = $_GET['month'] ?? '';
-$year_month  = $_GET['year_month'] ?? ''; // Tahun khusus untuk filter bulanan
-$year_only   = $_GET['year_only'] ?? '';  // Tahun khusus untuk filter tahunan
+$year_month  = $_GET['year_month'] ?? ''; 
+$year_only   = $_GET['year_only'] ?? '';  
 $id_product  = $_GET['id_product'] ?? ''; 
 
 $where_clauses = [];
-$label = "Semua Waktu"; // Label default jika tidak ada filter waktu
-$current_year = '';     // Variabel bantu untuk query
+$label = "Semua Waktu"; 
 
-// Logika Penentuan Query berdasarkan Jenis Filter Waktu
+// 1. Logika Penentuan Query berdasarkan Jenis Filter Waktu
 if ($type == 'day' && !empty($day)) {
-    $where_clauses[] = "p.tanggal_order = '$day'";
+    $where_clauses[] = "t.tanggal_order = '$day'";
     $label = "Hari: " . date('d M Y', strtotime($day));
 } elseif ($type == 'month' && !empty($month) && !empty($year_month)) {
-    $where_clauses[] = "MONTH(p.tanggal_order) = '$month' AND YEAR(p.tanggal_order) = '$year_month'";
+    $where_clauses[] = "MONTH(t.tanggal_order) = '$month' AND YEAR(t.tanggal_order) = '$year_month'";
     $months_name = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
     $label = "Bulan: " . $months_name[intval($month)-1] . " " . $year_month;
-    $current_year = $year_month;
 } elseif ($type == 'year' && !empty($year_only)) {
-    $where_clauses[] = "YEAR(p.tanggal_order) = '$year_only'";
+    $where_clauses[] = "YEAR(t.tanggal_order) = '$year_only'";
     $label = "Tahun: " . $year_only;
-    $current_year = $year_only;
 }
 
-// Tambahkan filter produk ke klausa WHERE jika dipilih
+// 2. Filter Produk
 $product_label = "";
 if (!empty($id_product)) {
-    $where_clauses[] = "pl.fk_product = '$id_product'";
+    $where_clauses[] = "tl.fk_product = '$id_product'";
     
-    // Ambil nama produk untuk label penanda filter aktif
     $res_p_name = mysqli_query($conn, "SELECT nama_product FROM product WHERE id_product = '$id_product'");
     $p_data = mysqli_fetch_assoc($res_p_name);
     if ($p_data) {
@@ -47,18 +44,68 @@ if (count($where_clauses) > 0) {
     $where_sql = "WHERE " . implode(" AND ", $where_clauses);
 }
 
-// 1. Query Aggregation (SUM & COUNT)
+// --- LOGIKA TAMBAHAN UNTUK MENGHITUNG UTUNG / RUGI (PROFIT & LOSS) ---
+// Kita ambil total belanja (purchase) pada periode filter ini
 if (!empty($id_product)) {
-    $query = "SELECT COUNT(DISTINCT p.id_purchase) as total_po, SUM(pl.subtotal) as grand_total 
-              FROM transaksi_purchase p 
-              JOIN transaksi_purchase_line pl ON p.id_purchase = pl.fk_purchase 
-              $where_sql";
+    $q_pur = "SELECT SUM(tl.subtotal) as total FROM transaksi_purchase t JOIN transaksi_purchase_line tl ON t.id_purchase = tl.fk_purchase $where_sql";
+    $q_sal = "SELECT SUM(tl.subtotal) as total FROM transaksi_sales t JOIN transaksi_sales_line tl ON t.id_sales = tl.fk_sales $where_sql";
 } else {
-    $query = "SELECT COUNT(p.id_purchase) as total_po, SUM(p.total_keseluruhan) as grand_total 
-              FROM transaksi_purchase p 
-              $where_sql";
+    $q_pur = "SELECT SUM(t.total_keseluruhan) as total FROM transaksi_purchase t $where_sql";
+    $q_sal = "SELECT SUM(t.total_keseluruhan) as total FROM transaksi_sales t $where_sql";
+}
+$res_pur = mysqli_fetch_assoc(mysqli_query($conn, $q_pur));
+$res_sal = mysqli_fetch_assoc(mysqli_query($conn, $q_sal));
+
+$total_purchase_amt = $res_pur['total'] ?? 0;
+$total_sales_amt    = $res_sal['total'] ?? 0;
+$selisih_profit     = $total_sales_amt - $total_purchase_amt; // Positif = Untung, Negatif = Rugi
+// ---------------------------------------------------------------------
+
+// 3. DEFINISI NAMA TABEL BERDASARKAN MODUL AKTIF
+if ($module == 'sales') {
+    $table_main = "transaksi_sales";
+    $table_line = "transaksi_sales_line";
+    $fk_main    = "id_sales";
+    $fk_line    = "fk_sales";
+    $module_title = "Sales Analytics";
+    $doc_prefix = "SO";
+    $partner_join = "JOIN customer c ON t.fk_customer = c.id_customer";
+    $partner_col  = "c.nama_pelanggan AS nama_partner";
+    $partner_label = "Customer";
+} elseif ($module == 'profit') {
+    $module_title = "Profit & Loss Statement";
+    // Untuk mode profit, tabel default bawahnya kita set tampilkan sales log saja
+    $table_main = "transaksi_sales";
+    $table_line = "transaksi_sales_line";
+    $fk_main    = "id_sales";
+    $fk_line    = "fk_sales";
+    $doc_prefix = "SO";
+    $partner_join = "JOIN customer c ON t.fk_customer = c.id_customer";
+    $partner_col  = "c.nama_pelanggan AS nama_partner";
+    $partner_label = "Customer";
+} else {
+    $table_main = "transaksi_purchase";
+    $table_line = "transaksi_purchase_line";
+    $fk_main    = "id_purchase";
+    $fk_line    = "fk_purchase";
+    $module_title = "Purchase Analytics";
+    $doc_prefix = "PO";
+    $partner_join = "JOIN supplier s ON t.fk_supplier = s.id_supplier";
+    $partner_col  = "s.nama_perusahaan AS nama_partner";
+    $partner_label = "Supplier";
 }
 
+// 4. Query Aggregation Utama
+if (!empty($id_product)) {
+    $query = "SELECT COUNT(DISTINCT t.$fk_main) as total_doc, SUM(tl.subtotal) as grand_total 
+              FROM $table_main t 
+              JOIN $table_line tl ON t.$fk_main = tl.$fk_line 
+              $where_sql";
+} else {
+    $query = "SELECT COUNT(t.$fk_main) as total_doc, SUM(t.total_keseluruhan) as grand_total 
+              FROM $table_main t 
+              $where_sql";
+}
 $result = mysqli_query($conn, $query);
 $data = mysqli_fetch_assoc($result);
 
@@ -66,13 +113,22 @@ include 'header.php';
 ?>
 
 <div class="header-bar">
-    <h1>Purchase Analytics</h1>
+    <h1><?= $module_title ?></h1>
 </div>
 
 <div class="card" style="margin-bottom: 20px; background: #f9f9f9;">
     <form method="GET" id="filter_form" style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
         
         <input type="hidden" name="type" id="filter_type" value="<?= $type ?>">
+
+        <div style="border-right: 2px solid #ef7d00; padding-right: 20px;">
+            <label><strong>Pilih Modul Laporan:</strong></label><br>
+            <select name="module" style="padding:5px; font-weight:bold; border: 1px solid #ef7d00;" onchange="document.getElementById('filter_form').submit();">
+                <option value="purchase" <?= $module == 'purchase' ? 'selected' : '' ?>>🛒 Purchase Reporting (Pembelian)</option>
+                <option value="sales" <?= $module == 'sales' ? 'selected' : '' ?>>📈 Sales Reporting (Penjualan)</option>
+                <option value="profit" <?= $module == 'profit' ? 'selected' : '' ?>>📊 Profit & Loss (Untung / Rugi)</option>
+            </select>
+        </div>
 
         <div style="border-right: 1px solid #ddd; padding-right: 20px;">
             <label><small><strong>Filter per Hari:</strong></small></label><br>
@@ -115,34 +171,48 @@ include 'header.php';
             <button type="submit" class="btn-orange" style="padding:5px 10px; font-size:12px; background:#555;">Apply Product</button>
         </div>
         
-        <a href="reporting.php" style="font-size:12px; color:#d9534f; font-weight:bold; margin-left: auto; align-self: center; text-decoration:none;">❌ Reset Filter</a>
+        <a href="reporting.php?module=<?= $module ?>" style="font-size:12px; color:#d9534f; font-weight:bold; margin-left: auto; align-self: center; text-decoration:none;">❌ Reset Filter</a>
     </form>
 </div>
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
     <div class="card" style="text-align: center; border-top: 5px solid #ef7d00;">
-        <h3 style="color: #555;">Total PO (COUNT)</h3>
-        <p style="font-size: 35px; margin: 10px 0;"><?= $data['total_po'] ?? 0 ?></p>
-        <small>Periode: <strong><?= $label . $product_label ?></strong></small>
+        <h3 style="color: #555;">Total Belanja (Purchase)</h3>
+        <p style="font-size: 28px; margin: 10px 0; color: #ef7d00;">IDR <?= number_format($total_purchase_amt, 0, ',', '.') ?></p>
+        <small>Periode: <strong><?= $label ?></strong></small>
     </div>
+    
     <div class="card" style="text-align: center; border-top: 5px solid #2ecc71;">
-        <h3 style="color: #555;">Total Belanja (SUM)</h3>
-        <p style="font-size: 35px; margin: 10px 0; color: #2ecc71;">IDR <?= number_format($data['grand_total'] ?? 0, 0, ',', '.') ?></p>
-        <small><?= !empty($id_product) ? 'Total pembelian produk ini' : 'Akumulasi biaya' ?> pada periode <strong><?= $label ?></strong></small>
+        <h3 style="color: #555;">Total Pendapatan (Sales)</h3>
+        <p style="font-size: 28px; margin: 10px 0; color: #2ecc71;">IDR <?= number_format($total_sales_amt, 0, ',', '.') ?></p>
+        <small>Periode: <strong><?= $label ?></strong></small>
+    </div>
+
+    <?php 
+        // Menentukan warna badge/text berdasarkan hasil untung atau rugi
+        $box_color = ($selisih_profit >= 0) ? '#2ecc71' : '#d9534f'; 
+        $status_text = ($selisih_profit >= 0) ? '🟢 UNTUNG (Surplus)' : '🔴 RUGI (Defisit)';
+    ?>
+    <div class="card" style="text-align: center; border-top: 5px solid <?= $box_color ?>; background: #fffdf9;">
+        <h3 style="color: #555;">Selisih Bersih (Net Profit/Loss)</h3>
+        <p style="font-size: 28px; margin: 10px 0; color: <?= $box_color ?>; font-weight: bold;">
+            <?= ($selisih_profit >= 0) ? '+' : '' ?>IDR <?= number_format($selisih_profit, 0, ',', '.') ?>
+        </p>
+        <small>Kondisi: <strong><?= $status_text ?></strong></small>
     </div>
 </div>
 
 <div class="card" style="margin-top: 20px;">
-    <h3>Detail Transaksi: <?= $label . $product_label ?></h3>
+    <h3>Detail Log Transaksi Aktif (Modul: <?= strtoupper($module) ?>)</h3>
     <table style="margin-top: 15px;">
         <thead>
             <tr>
                 <th>Tanggal</th>
-                <th>PO Ref</th>
-                <th>Supplier</th>
+                <th><?= $doc_prefix ?> Ref</th>
+                <th><?= $partner_label ?></th>
                 <th>Status</th>
                 <?php if(!empty($id_product)): ?>
-                    <th style="text-align:center">Qty Dipesan</th>
+                    <th style="text-align:center">Qty</th>
                     <th style="text-align:right">Harga Satuan</th>
                 <?php endif; ?>
                 <th style="text-align:right"><?= !empty($id_product) ? 'Subtotal Item' : 'Total Nilai Invoice' ?></th>
@@ -151,16 +221,16 @@ include 'header.php';
         <tbody>
             <?php 
             if (!empty($id_product)) {
-                $list_sql = "SELECT p.*, s.nama_perusahaan, pl.qty, pl.harga_satuan, pl.subtotal as item_subtotal
-                             FROM transaksi_purchase p 
-                             JOIN supplier s ON p.fk_supplier = s.id_supplier 
-                             JOIN transaksi_purchase_line pl ON p.id_purchase = pl.fk_purchase
-                             $where_sql ORDER BY p.tanggal_order DESC";
+                $list_sql = "SELECT t.*, $partner_col, tl.qty, tl.harga_satuan, tl.subtotal as item_subtotal
+                             FROM $table_main t 
+                             $partner_join
+                             JOIN $table_line tl ON t.$fk_main = tl.$fk_line
+                             $where_sql ORDER BY t.tanggal_order DESC";
             } else {
-                $list_sql = "SELECT p.*, s.nama_perusahaan 
-                             FROM transaksi_purchase p 
-                             JOIN supplier s ON p.fk_supplier = s.id_supplier 
-                             $where_sql ORDER BY p.tanggal_order DESC";
+                $list_sql = "SELECT t.*, $partner_col 
+                             FROM $table_main t 
+                             $partner_join 
+                             $where_sql ORDER BY t.tanggal_order DESC";
             }
             
             $list_res = mysqli_query($conn, $list_sql);
@@ -170,8 +240,8 @@ include 'header.php';
                     
                     echo "<tr>
                             <td>{$row['tanggal_order']}</td>
-                            <td><strong>PO/".date('Y', strtotime($row['tanggal_order']))."/".str_pad($row['id_purchase'], 4, '0', STR_PAD_LEFT)."</strong></td>
-                            <td>{$row['nama_perusahaan']}</td>
+                            <td><strong>{$doc_prefix}/".date('Y', strtotime($row['tanggal_order']))."/".str_pad($row[$fk_main], 4, '0', STR_PAD_LEFT)."</strong></td>
+                            <td>{$row['nama_partner']}</td>
                             <td><span class='badge'>".strtoupper($row['status_dokumen'])."</span></td>";
                     
                     if(!empty($id_product)) {
@@ -192,7 +262,6 @@ include 'header.php';
 </div>
 
 <script>
-// Fungsi menjamin nilai tipe filter terisi dengan benar di input hidden sebelum form dikirim
 function setFilterType(typeValue) {
     document.getElementById('filter_type').value = typeValue;
 }
